@@ -12,10 +12,10 @@ async def run_server():
 if __name__ == '__main__':
     torrent = TorrentFileReader.read_file('test_resources/test.jpg.torrent')
     print(str(torrent))
-    url = 'http://192.168.100.26:8888'
+    url = '192.168.100.26:8888'
     info_hash = torrent.info.pieces[:20]  # first piece for testing reasons hash length is 20 todo move to separate var
     print(info_hash)
     uuid = uuid1()
     pwp_client = PWPClient()
     asyncio.run(pwp_client.handshake(url, info_hash, str(uuid)))
-    asyncio.run(run_server())
+    #asyncio.run(run_server())
