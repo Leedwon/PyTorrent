@@ -22,6 +22,7 @@ class PWPClient:
 
         server = await asyncio.start_server(handler, '0.0.0.0', 8888)
         async with server:
+            print("serving")
             await server.serve_forever()
 
     async def handshake(self, url_port) -> bool:
@@ -34,6 +35,7 @@ class PWPClient:
         return await self._read_handshake_and_validate(reader)
 
     async def _send_handshake(self, writer):
+        print("sending handshake")
         data_to_send = self._prepare_data_to_send()
         print(f'data to send length {len(data_to_send)}')
 
@@ -47,21 +49,20 @@ class PWPClient:
         print(f'received handshake data = ${data}')
         return self.is_handshake_data_valid(data)
 
-    def _prepare_data_to_send(self) -> bytearray:
+    def _prepare_data_to_send(self) -> bytes:
         name_length = 19
         protocol_name = b'BitTorrent protocol'
-        reserved = b'12345678'  # 8 bytes are reserved
+        reserved = b'12345678'  # 8 bytes are reserved change to sth better
         peer_id = self.peer_id[:20]  # peer id can't be longer than 20 bytes
 
-        data_to_send = bytearray()
-        data_to_send.append(name_length)
-        data_to_send.extend(protocol_name)
-        data_to_send.extend(reserved)
-        data_to_send.extend(self.meta_file.info_hash)
-        data_to_send.extend(peer_id.encode(encoding='utf-8'))
-        return data_to_send
+        to_send = bytes(name_length)
+        to_send = to_send + protocol_name
+        to_send = to_send + reserved
+        to_send = to_send + self.meta_file.info_hash
+        to_send = to_send + peer_id.encode(encoding='utf-8')
+        return to_send
 
-    def is_handshake_data_valid(self, data: bytearray) -> bool:
+    def is_handshake_data_valid(self, data: bytes) -> bool:
         name_length_check = data[0] == 19
         protocol_name_check = data[1:20] == b'BitTorrent protocol'
         info_hash: bytes = data[28:48]
