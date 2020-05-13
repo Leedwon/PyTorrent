@@ -21,4 +21,4 @@ if __name__ == '__main__':
     try:
         asyncio.run(pwp_client.handshake(url_rpi))
     except ConnectionRefusedError:
-        asyncio.run(pwp_client.handle_handshake())
+        asyncio.run((pwp_client.handle_handshake()))

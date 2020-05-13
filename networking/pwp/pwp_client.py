@@ -16,7 +16,7 @@ class PWPClient:
     async def handle_handshake(self):
         async def handler(reader, writer):
             is_data_valid = await self._read_handshake_and_validate(reader)
-            print(is_data_valid)
+            print(f'is_data_valid = {is_data_valid}')
             if is_data_valid and not self.has_shook_hands:
                 await self._send_handshake(writer)
 
@@ -32,7 +32,11 @@ class PWPClient:
         reader, writer = await asyncio.open_connection(host=url, port=int(port))
 
         await self._send_handshake(writer)
-        return await self._read_handshake_and_validate(reader)
+        read_and_validate = await self._read_handshake_and_validate(reader)
+        print(f'read and validate = {read_and_validate}')
+
+        writer.close()
+        return read_and_validate
 
     async def _send_handshake(self, writer):
         print("sending handshake")
@@ -42,12 +46,23 @@ class PWPClient:
         writer.write(data_to_send)
         self.has_shook_hands = True
         await writer.drain()
-        writer.close()
 
+    # is there more elegant solution?
     async def _read_handshake_and_validate(self, reader) -> bool:
-        data = await reader.read(self.handshake_bytes_length)
-        print(f'received handshake data = ${data}')
-        return self.is_handshake_data_valid(data)
+        # try reading every 5sec for 1min todo make more generic solution to reuse later
+        async def read_data():
+            while True:
+                data = await reader.read(self.handshake_bytes_length)
+                print(f'received handshake data = ${data}')
+                if len(data) == self.handshake_bytes_length:
+                    return self.is_handshake_data_valid(data)
+                else:
+                    await asyncio.sleep(5)
+
+        try:
+            return await asyncio.wait_for(read_data(), timeout=60)
+        except asyncio.TimeoutError:
+            return False
 
     def _prepare_data_to_send(self) -> bytes:
         name_length = 19
@@ -55,11 +70,12 @@ class PWPClient:
         reserved = b'12345678'  # 8 bytes are reserved change to sth better
         peer_id = self.peer_id[:20]  # peer id can't be longer than 20 bytes
 
-        to_send = bytes(name_length)
+        to_send: bytes = bytes([name_length])  # has to be called on iterable
         to_send = to_send + protocol_name
         to_send = to_send + reserved
         to_send = to_send + self.meta_file.info_hash
-        to_send = to_send + peer_id.encode(encoding='utf-8')
+        to_send = to_send + bytes(
+            peer_id.encode())  # todo should it be utf8 encoded? if so find a way to encode and still stay on 68bytes
         return to_send
 
     def is_handshake_data_valid(self, data: bytes) -> bool:
