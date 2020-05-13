@@ -1,8 +1,10 @@
 import bencoder
 import io
+import hashlib
 
 from model.meta_info_file import MetaInfoFile
 from model.torrent_file import *
+from utils.byteswrap import wrap
 
 
 # todo put to some package
@@ -37,7 +39,8 @@ class TorrentFileReader:
 
                 return MetaInfoFile(
                     announce=announce,
-                    info=TorrentFileReader.create_multi_file_torrent_from_info(info),
+                    info_hash=TorrentFileReader.create_info_hash(info),
+                    torrent_file=TorrentFileReader.create_multi_file_torrent_from_info(info),
                     announce_list=announce_list,
                     comment=comment,
                     created_by=created_by,
@@ -48,7 +51,8 @@ class TorrentFileReader:
 
                 return MetaInfoFile(
                     announce=announce,
-                    info=TorrentFileReader.create_single_file_torrent_from_info(info),
+                    info_hash=TorrentFileReader.create_info_hash(info),
+                    torrent_file=TorrentFileReader.create_single_file_torrent_from_info(info),
                     announce_list=announce_list,
                     comment=comment,
                     created_by=created_by,
@@ -78,7 +82,7 @@ class TorrentFileReader:
         return MultiFileTorrent(
             name=name,
             piece_length=piece_length,
-            pieces=pieces,
+            pieces=wrap(pieces, 20),
             files=torrent_files
         )
 
@@ -95,7 +99,16 @@ class TorrentFileReader:
         return SingleFileTorrent(
             name=name,
             piece_length=piece_length,
-            pieces=pieces,
+            pieces=wrap(pieces, 20),
             length=length,
             md5sum=md5sum
         )
+
+    @staticmethod
+    def create_info_hash(info) -> bytes:
+        sha1 = hashlib.sha1()
+        sha1.update(bencoder.encode(info))  # todo should it be bencoded? I couldn't find test in real use-case or find out
+        return sha1.digest()[:20] # docs state that it should be 20 bytes length, but sha1 may be longer just take first 20 or what? todo find out
+
+
+print(str(TorrentFileReader.read_file("test_resources/test.jpg.torrent")))

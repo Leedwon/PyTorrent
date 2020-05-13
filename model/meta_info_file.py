@@ -9,7 +9,8 @@ from model.torrent_file import TorrentFile
 @dataclass
 class MetaInfoFile:
     announce: str
-    info: TorrentFile
+    info_hash: bytes
+    torrent_file: TorrentFile
     announce_list: list = None  # list of string
     comment: str = None
     created_by: str = None

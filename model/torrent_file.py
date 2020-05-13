@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 # should we use inheritance here or composition over inheritance?
 # mb there is a better way to represent both single and multi file torrent?
 #todo refactor naming convention
@@ -9,7 +8,7 @@ from dataclasses import dataclass
 class TorrentFile:
     name: str
     piece_length: int
-    pieces: bytes
+    pieces: list
 
 
 @dataclass
