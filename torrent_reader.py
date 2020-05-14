@@ -19,7 +19,6 @@ class TorrentFileReader:
             announce = decoded[b'announce']
             info = decoded[b'info']
 
-            # todo get rid of those? do we really need them for this project
             announce_list = None
             comment = None
             created_by = None
@@ -40,7 +39,7 @@ class TorrentFileReader:
                 return MetaInfoFile(
                     announce=announce,
                     info_hash=TorrentFileReader.create_info_hash(info),
-                    torrent_file=TorrentFileReader.create_multi_file_torrent_from_info(info),
+                    torrent_file=TorrentFileReader._create_multi_file_torrent_from_info(info),
                     announce_list=announce_list,
                     comment=comment,
                     created_by=created_by,
@@ -59,9 +58,9 @@ class TorrentFileReader:
                     creation_date=creation_date,
                 )
 
-    # todo make this method private but still access it in read_file method, mb static methods are not a good idea?
+
     @staticmethod
-    def create_multi_file_torrent_from_info(info) -> MultiFileTorrent:
+    def _create_multi_file_torrent_from_info(info) -> MultiFileTorrent:
         name = info[b'name']
         piece_length = info[b'piece length']
         pieces = info[b'pieces']
@@ -107,7 +106,7 @@ class TorrentFileReader:
     @staticmethod
     def create_info_hash(info) -> bytes:
         sha1 = hashlib.sha1()
-        sha1.update(bencoder.encode(info))  # todo should it be bencoded? I couldn't find test in real use-case or find out
+        sha1.update(bencoder.encode(info)) 
         return sha1.digest()[:20] # docs state that it should be 20 bytes length, but sha1 may be longer just take first 20 or what? todo find out
 
 
