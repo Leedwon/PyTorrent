@@ -20,5 +20,6 @@ if __name__ == '__main__':
     # for test sake we'll try to connect and if error occurs we'll start serving as host
     try:
         asyncio.run(pwp_client.handshake(url_rpi))
-    except ConnectionRefusedError:
+    # todo add handling some ssl exception instead of those two
+    except (OSError, ConnectionRefusedError):
         asyncio.run((pwp_client.handle_handshake()))
