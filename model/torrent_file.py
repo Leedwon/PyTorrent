@@ -8,7 +8,7 @@ from dataclasses import dataclass
 class TorrentFile:
     name: str
     piece_length: int
-    pieces: list
+    piece_hashes: list
 
 
 @dataclass
