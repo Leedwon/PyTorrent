@@ -7,16 +7,21 @@ TIMEOUT = 10
 
 
 class PwpServer:
-    def __init__(self, handshake_manager: HandshakeManager, on_new_connection):
+    def __init__(self, handshake_manager: HandshakeManager, on_new_connection, on_message_received):
         self.handshake_manager = handshake_manager
         self.on_new_connection = on_new_connection  # todo add type of this callback smh?
+        self.on_message_received = on_message_received  # todo avoid this callback hell
         self.serving_task = None
 
     async def run(self):
-        server = await asyncio.start_server(self.handler, '127.0.0.1', 8888)
-        print(f'serving on {server.sockets[0].getsockname()}')
+        try:
+            server = await asyncio.start_server(self.handler, '127.0.0.1', 8888)
+            print(f'serving on {server.sockets[0].getsockname()}')
+        except OSError:
+            print(f'already serving')
 
     async def handler(self, reader, writer):
+        print("new peer connected to us")
         data = await asyncio.wait_for(reader.read(HANDSHAKE_LENGTH), TIMEOUT)
         if data is not None:
             handshake_validated = self.handshake_manager.is_handshake_data_valid(data)
@@ -24,7 +29,8 @@ class PwpServer:
                 print("server handshake ok")
                 writer.write(self.handshake_manager.prepare_data_to_send())
                 await writer.drain()
-                self.on_new_connection(PwpConnection(writer=writer, reader=reader))
+                await self.on_new_connection(
+                    PwpConnection(writer=writer, reader=reader, on_message_received=self.on_message_received))
             else:
                 writer.close()
                 await writer.wait_closed()

@@ -22,16 +22,11 @@ handshake_manager = HandshakeManager(
 empty_peers = []
 non_empty_peers = [Peer('01234567890123456789'[:20], '127.0.0.1', 8888)]
 
-piecesManager = PwpPiecesManager(meta_file.torrent_file.piece_hashes)
+piecesManager = PwpPiecesManager(meta_file.torrent_file.piece_hashes, meta_file.torrent_file.piece_length)
 connManager = PwpConnectionsManager(
     pieces_manager=piecesManager,
     handshake_manager=handshake_manager,
-    peers=non_empty_peers,
-    should_serve=False
+    peers=non_empty_peers
 )
 
-asyncio.run(connManager.run())
-while len(connManager.active_connections) > 0:
-    pass
-while True:
-    pass
+asyncio.get_event_loop().create_task(connManager.run()).get_loop().run_forever()

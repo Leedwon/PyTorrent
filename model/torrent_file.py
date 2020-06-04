@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 # should we use inheritance here or composition over inheritance?
 # mb there is a better way to represent both single and multi file torrent?
-#todo refactor naming convention
+# todo refactor naming convention
 
 @dataclass
 class TorrentFile:

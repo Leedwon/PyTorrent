@@ -20,12 +20,11 @@ if __name__ == '__main__':
     empty_peers = []
     non_empty_peers = [Peer('01234567890123456789'[:20], '127.0.0.1', 8888)]
 
-    piecesManager = PwpPiecesManager(meta_file.torrent_file.piece_hashes)
+    piecesManager = PwpPiecesManager(meta_file.torrent_file.piece_hashes, meta_file.torrent_file.piece_length)
     connManager = PwpConnectionsManager(
         pieces_manager=piecesManager,
         handshake_manager=handshake_manager,
-        peers=empty_peers,
-        should_serve=True
+        peers=empty_peers
     )
 
     # todo asyncio.run start's a server but since there is no connection the whole process finishes instantly this run forever workaround works for now but find some different solution

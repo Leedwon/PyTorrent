@@ -2,7 +2,6 @@ import asyncio
 
 from model.peer import Peer
 from networking.pwp.handshake_manager import HandshakeManager, HANDSHAKE_LENGTH
-from networking.pwp.pwp_connection import PwpConnection
 
 TIMEOUT = 10
 
@@ -11,15 +10,15 @@ class PwpClient:
     def __init__(self, handshake_manager: HandshakeManager):
         self.handshake_manager = handshake_manager
 
-    # return pwpConnection or None - think of sth better to return?
-    async def create_connection_and_handshake(self, peer: Peer):
+    # return writer,reader or None - think of sth better to return?
+    async def handshake_and_get_writer_reader_if_possible(self, peer: Peer):
         reader, writer = await asyncio.open_connection(host=peer.ip, port=peer.port)
 
         await self._send_handshake(writer)
         read_and_validate = await self._read_handshake_and_validate(reader)
 
         if read_and_validate:
-            return PwpConnection(writer, reader)
+            return writer, reader
         else:
             writer.close()
             return None
