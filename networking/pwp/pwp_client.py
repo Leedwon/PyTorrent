@@ -10,7 +10,7 @@ class PwpClient:
     def __init__(self, handshake_manager: HandshakeManager):
         self.handshake_manager = handshake_manager
 
-    # return writer,reader or None - think of sth better to return?
+    # return writer,reader or None, None - think of sth better to return?
     async def handshake_and_get_writer_reader_if_possible(self, peer: Peer):
         reader, writer = await asyncio.open_connection(host=peer.ip, port=peer.port)
 
@@ -21,7 +21,7 @@ class PwpClient:
             return writer, reader
         else:
             writer.close()
-            return None
+            return None, None
 
     async def _send_handshake(self, writer):
         data_to_send = self.handshake_manager.prepare_data_to_send()

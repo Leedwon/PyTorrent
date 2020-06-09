@@ -7,11 +7,11 @@ TIMEOUT = 10
 
 
 class PwpServer:
-    def __init__(self, handshake_manager: HandshakeManager, on_new_connection, on_message_received):
+    def __init__(self, handshake_manager: HandshakeManager, on_new_connection, on_message_received, on_disconnected):
         self.handshake_manager = handshake_manager
         self.on_new_connection = on_new_connection  # todo add type of this callback smh?
         self.on_message_received = on_message_received  # todo avoid this callback hell
-        self.serving_task = None
+        self.on_disconnected = on_disconnected  # todo avoid callbacks
 
     async def run(self):
         try:
@@ -30,11 +30,8 @@ class PwpServer:
                 writer.write(self.handshake_manager.prepare_data_to_send())
                 await writer.drain()
                 await self.on_new_connection(
-                    PwpConnection(writer=writer, reader=reader, on_message_received=self.on_message_received))
+                    PwpConnection(writer=writer, reader=reader, on_message_received=self.on_message_received,
+                                  on_disconnected=self.on_disconnected))
             else:
                 writer.close()
                 await writer.wait_closed()
-
-    async def kill_server(self):
-        if self.serving_task is not None:
-            self.serving_task.cancel()

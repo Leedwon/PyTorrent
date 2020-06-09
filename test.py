@@ -1,6 +1,7 @@
 import asyncio
 from uuid import uuid1
 
+from file_manager import FileManager
 from model.peer import Peer
 from networking.pwp.handshake_manager import HandshakeManager
 from networking.pwp.pwp_connections_manager import PwpConnectionsManager
@@ -22,11 +23,17 @@ handshake_manager = HandshakeManager(
 empty_peers = []
 non_empty_peers = [Peer('01234567890123456789'[:20], '127.0.0.1', 8888)]
 
-piecesManager = PwpPiecesManager(meta_file.torrent_file.piece_hashes, meta_file.torrent_file.piece_length)
+file_manager = FileManager('test_resources/downloaded.jpg')
+
+piecesManager = PwpPiecesManager(pieces_hashes=meta_file.torrent_file.piece_hashes,
+                                 file_length=meta_file.torrent_file.get_length(),
+                                 piece_length=meta_file.torrent_file.piece_length)
 connManager = PwpConnectionsManager(
     pieces_manager=piecesManager,
     handshake_manager=handshake_manager,
-    peers=non_empty_peers
+    peers=non_empty_peers,
+    file_manager=file_manager,
+    should_serve=False
 )
 
 asyncio.get_event_loop().create_task(connManager.run()).get_loop().run_forever()

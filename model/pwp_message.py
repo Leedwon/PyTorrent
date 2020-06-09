@@ -24,10 +24,10 @@ class PwpMessage:
     length: int  # denotes the length of the message, excluding the length part itself. If a message has no payload, its size is 1. Messages of size 0 MAY be sent periodically as keep-alive messages.
     id: PwpId
     payload: bytes = None
-    pack_fmt = '!IB'
+    _pack_fmt = '!IB'
 
     def to_bytes(self) -> bytes:
-        data = struct.pack(self.pack_fmt, self.length, self.id.value)
+        data = struct.pack(self._pack_fmt, self.length, self.id.value)
         if self.payload is not None:
             data = data + self.payload
         return data
@@ -64,16 +64,16 @@ class PwpRequest(PwpMessageFactoryInterface):
     piece_index: int
     block_offset: int
     block_length: int
-    pack_fmt = '!3I'
+    _pack_fmt = '!3I'
 
     def get_id(self) -> PwpId:
         return PwpId.REQUEST
 
     def to_bytes(self) -> bytes:
-        return struct.pack(self.pack_fmt, self.piece_index, self.block_offset, self.block_length)
+        return struct.pack(self._pack_fmt, self.piece_index, self.block_offset, self.block_length)
 
     def get_length(self):
-        return struct.calcsize(self.pack_fmt)
+        return struct.calcsize(self._pack_fmt)
 
     @staticmethod
     def from_bytes(data: bytes):
@@ -89,16 +89,16 @@ class PwpPiece(PwpMessageFactoryInterface):
     piece_index: int
     block_offset: int
     block_data: bytes
-    pack_fmt = '!2I'
+    _pack_fmt = '!2I'
 
     def get_id(self) -> PwpId:
         return PwpId.PIECE
 
     def to_bytes(self) -> bytes:
-        return struct.pack(self.pack_fmt, self.piece_index, self.block_offset) + self.block_data
+        return struct.pack(self._pack_fmt, self.piece_index, self.block_offset) + self.block_data
 
     def get_length(self):
-        return struct.calcsize(self.pack_fmt) + len(self.block_data)
+        return struct.calcsize(self._pack_fmt) + len(self.block_data)
 
     @staticmethod
     def from_bytes(data: bytes):
@@ -115,16 +115,16 @@ class PwpPiece(PwpMessageFactoryInterface):
 @dataclass
 class PwpHave(PwpMessageFactoryInterface):
     piece_index: int
-    pack_fmt = '!I'
+    _pack_fmt = '!I'
 
     def get_id(self) -> PwpId:
         return PwpId.HAVE
 
     def to_bytes(self):
-        return struct.pack(self.pack_fmt, self.piece_index)
+        return struct.pack(self._pack_fmt, self.piece_index)
 
     def get_length(self):
-        return struct.calcsize(self.pack_fmt)
+        return struct.calcsize(self._pack_fmt)
 
     @staticmethod
     def from_bytes(data: bytes):
@@ -137,16 +137,16 @@ class PwpCancel(PwpMessageFactoryInterface):
     piece_index: int
     block_offset: int
     block_length: int
-    pack_fmt = '!3I'
+    _pack_fmt = '!3I'
 
     def get_id(self) -> PwpId:
         return PwpId.CANCEL
 
     def to_bytes(self) -> bytes:
-        return struct.pack(self.pack_fmt, self.piece_index, self.block_offset, self.block_length)
+        return struct.pack(self._pack_fmt, self.piece_index, self.block_offset, self.block_length)
 
     def get_length(self):
-        return struct.calcsize(self.pack_fmt)
+        return struct.calcsize(self._pack_fmt)
 
     @staticmethod
     def from_bytes(data: bytes):
@@ -158,23 +158,25 @@ class PwpCancel(PwpMessageFactoryInterface):
         )
 
 
-def generate_choke_message() -> PwpMessage:
-    return PwpMessage(length=PwpMessage.get_id_length(), id=PwpId.CHOKE)
+class MessagesUtil:
+    @staticmethod
+    def generate_choke_message() -> PwpMessage:
+        return PwpMessage(length=PwpMessage.get_id_length(), id=PwpId.CHOKE)
 
+    @staticmethod
+    def generate_unchoke_message() -> PwpMessage:
+        return PwpMessage(length=PwpMessage.get_id_length(), id=PwpId.UN_CHOKE)
 
-def generate_unchoke_message() -> PwpMessage:
-    return PwpMessage(length=PwpMessage.get_id_length(), id=PwpId.UN_CHOKE)
+    @staticmethod
+    def generate_interested_message() -> PwpMessage:
+        return PwpMessage(length=PwpMessage.get_id_length(), id=PwpId.INTERESTED)
 
+    @staticmethod
+    def generate_uninterested_message() -> PwpMessage:
+        return PwpMessage(length=PwpMessage.get_id_length(), id=PwpId.UNINTERESTED)
 
-def generate_interested_message() -> PwpMessage:
-    return PwpMessage(length=PwpMessage.get_id_length(), id=PwpId.INTERESTED)
-
-
-def generate_uninterested_message() -> PwpMessage:
-    return PwpMessage(length=PwpMessage.get_id_length(), id=PwpId.UNINTERESTED)
-
-
-def generate_bitfield_message(data: bitarray) -> PwpMessage:
-    data = data.tobytes()
-    length = PwpMessage.get_id_length() + len(data)
-    return PwpMessage(length, PwpId.BITFIELD, data)
+    @staticmethod
+    def generate_bitfield_message(data: bitarray) -> PwpMessage:
+        data = data.tobytes()
+        length = PwpMessage.get_id_length() + len(data)
+        return PwpMessage(length, PwpId.BITFIELD, data)

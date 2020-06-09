@@ -1,12 +1,14 @@
 import asyncio
 from uuid import uuid1
 
+from file_manager import FileManager
 from model.peer import Peer
 from networking.pwp.handshake_manager import HandshakeManager
 from networking.pwp.pwp_connections_manager import PwpConnectionsManager
 from networking.pwp.pwp_pieces_manager import PwpPiecesManager
 from torrent_reader import TorrentFileReader
 
+# todo add logic for multi file torrents
 if __name__ == '__main__':
     meta_file = TorrentFileReader.read_file('test_resources/test.jpg.torrent')
     print(str(meta_file))
@@ -20,13 +22,20 @@ if __name__ == '__main__':
     empty_peers = []
     non_empty_peers = [Peer('01234567890123456789'[:20], '127.0.0.1', 8888)]
 
-    piecesManager = PwpPiecesManager(meta_file.torrent_file.piece_hashes, meta_file.torrent_file.piece_length)
+    pieces_manager = PwpPiecesManager(pieces_hashes=meta_file.torrent_file.piece_hashes,
+                                      piece_length=meta_file.torrent_file.piece_length,
+                                      file_length=meta_file.torrent_file.get_length(),
+                                      owned_pieces=meta_file.torrent_file.piece_hashes)
+
+    file_manager = FileManager('test_resources/test.jpg')
+    print(len(meta_file.torrent_file.piece_hashes))
+
     connManager = PwpConnectionsManager(
-        pieces_manager=piecesManager,
+        pieces_manager=pieces_manager,
         handshake_manager=handshake_manager,
-        peers=empty_peers
+        peers=empty_peers,
+        file_manager=file_manager,
+        should_serve=True
     )
 
-    # todo asyncio.run start's a server but since there is no connection the whole process finishes instantly this run forever workaround works for now but find some different solution
-    # asyncio.run(connManager.run())
     asyncio.get_event_loop().create_task(connManager.run()).get_loop().run_forever()
