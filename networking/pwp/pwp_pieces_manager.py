@@ -1,6 +1,5 @@
 # this class should be used as shared resource for pwp connnections
 # its purpose is to track what pieces we already have and what pieces should we fetch
-from collections import Counter
 
 from bitarray import bitarray
 import hashlib

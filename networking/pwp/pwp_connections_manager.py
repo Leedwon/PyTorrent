@@ -50,18 +50,10 @@ class PwpConnectionsManager:
 
         for i in range(0, full_blocks_in_piece):
             msg = PwpRequest(piece_index, i * self.block_len, self.block_len)
-            await connection.send_message(PwpMessage(
-                length=msg.get_length() + PwpMessage.get_id_length(),
-                id=PwpId.REQUEST,
-                payload=msg.to_bytes()
-            ))
+            await connection.send_message(msg.to_pwp_message())
         if leftover_block_len > 0:
             msg = PwpRequest(piece_index, full_blocks_in_piece * self.block_len, leftover_block_len)
-            await connection.send_message(PwpMessage(
-                length=msg.get_length() + PwpMessage.get_id_length(),
-                id=PwpId.REQUEST,
-                payload=msg.to_bytes()
-            ))
+            await connection.send_message(msg.to_pwp_message())
 
     # todo prettify
     async def _save_received_pieces(self):
@@ -103,9 +95,6 @@ class PwpConnectionsManager:
 
     async def _connect_to_others(self):
         await self._connect_to_peers()
-        await asyncio.gather(
-
-        )
 
     async def _fetch_pieces_until_all_gathered(self):
         while self.pieces_manager.has_all_pieces() is False:
@@ -129,11 +118,7 @@ class PwpConnectionsManager:
                     data_to_send = await self.file_manager.get_data(offset, request.block_length)
                     piece = PwpPiece(request.piece_index, request.block_offset, data_to_send)
                     print(f'sending piece with index {piece.piece_index}')
-                    await connection.send_message(PwpMessage(
-                        length=piece.get_length() + PwpMessage.get_id_length(),
-                        id=PwpId.PIECE,
-                        payload=piece.to_bytes()
-                    ))
+                    await connection.send_message(piece.to_pwp_message())
                     connection.on_request_sent(request)
             await asyncio.sleep(0)
 

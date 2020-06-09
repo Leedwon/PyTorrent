@@ -51,7 +51,7 @@ class TorrentFileReader:
                 return MetaInfoFile(
                     announce=announce,
                     info_hash=TorrentFileReader.create_info_hash(info),
-                    torrent_file=TorrentFileReader.create_single_file_torrent_from_info(info),
+                    torrent_file=TorrentFileReader._create_single_file_torrent_from_info(info),
                     announce_list=announce_list,
                     comment=comment,
                     created_by=created_by,
@@ -85,7 +85,7 @@ class TorrentFileReader:
         )
 
     @staticmethod
-    def create_single_file_torrent_from_info(info) -> SingleFileTorrent:
+    def _create_single_file_torrent_from_info(info) -> SingleFileTorrent:
         length = info[b'length']
         name = info[b'name']
         piece_length = info[b'piece length']

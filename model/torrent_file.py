@@ -12,7 +12,7 @@ class TorrentFile:
     piece_hashes: list
 
     def get_length(self):
-        return -1
+        pass  # todo implement
 
 
 @dataclass

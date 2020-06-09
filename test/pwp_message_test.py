@@ -3,7 +3,7 @@ import unittest
 
 from bitarray import bitarray
 
-from model.pwp_message import PwpPiece, PwpMessage, PwpId, PwpRequest, PwpCancel, PwpHave, generate_bitfield_message
+from model.pwp_message import PwpPiece, PwpMessage, PwpId, PwpRequest, PwpCancel, PwpHave, MessagesUtil
 
 
 class TestPwpMessages(unittest.TestCase):
@@ -108,7 +108,7 @@ class TestPwpMessagesCreation(unittest.TestCase):
         data = b'1234'
         arr = bitarray()
         arr.frombytes(data)
-        msg = generate_bitfield_message(arr)
+        msg = MessagesUtil.generate_bitfield_message(arr)
         self.assertEqual(msg, PwpMessage(5, PwpId.BITFIELD, b'1234'))
 
 
